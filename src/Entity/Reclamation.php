@@ -3,10 +3,12 @@
 namespace App\Entity;
 
 use App\Repository\ReclamationRepository;
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=ReclamationRepository::class)
+ * @ApiResource()
  */
 class Reclamation
 {
@@ -22,10 +24,6 @@ class Reclamation
      */
     private $dateRec;
 
-    /**
-     * @ORM\OneToOne(targetEntity=Salle::class, inversedBy="reclamation", cascade={"persist", "remove"})
-     */
-    private $salle;
 
     /**
      * @ORM\Column(type="boolean")
@@ -36,6 +34,16 @@ class Reclamation
      * @ORM\Column(type="text")
      */
     private $description;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="reclamations")
+     */
+    private $proprietaire;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Salle::class, inversedBy="reclamations")
+     */
+    private $salle;
 
     public function getId(): ?int
     {
@@ -54,17 +62,6 @@ class Reclamation
         return $this;
     }
 
-    public function getSalle(): ?Salle
-    {
-        return $this->salle;
-    }
-
-    public function setSalle(?Salle $salle): self
-    {
-        $this->salle = $salle;
-
-        return $this;
-    }
 
     public function isEtat(): ?bool
     {
@@ -86,6 +83,34 @@ class Reclamation
     public function setDescription(string $description): self
     {
         $this->description = $description;
+
+        return $this;
+    }
+    public function __toString()
+    {
+        return $this->id;
+    }
+
+    public function getProprietaire(): ?User
+    {
+        return $this->proprietaire;
+    }
+
+    public function setProprietaire(?User $proprietaire): self
+    {
+        $this->proprietaire = $proprietaire;
+
+        return $this;
+    }
+
+    public function getSalle(): ?Salle
+    {
+        return $this->salle;
+    }
+
+    public function setSalle(?Salle $salle): self
+    {
+        $this->salle = $salle;
 
         return $this;
     }

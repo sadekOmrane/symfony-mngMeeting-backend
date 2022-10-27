@@ -4,13 +4,17 @@ namespace App\Entity;
 
 use App\Entity\Department;
 use App\Entity\Reservation;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
+use ApiPlatform\Core\Annotation\ApiResource;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
+ * @ApiResource()
  * @ORM\Table(name="`user`")
  */
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -38,6 +42,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     private $password;
 
+    private $plainPassword;
+
     /**
      * @ORM\ManyToOne(targetEntity=Department::class, inversedBy="employees")
      */
@@ -46,7 +52,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @ORM\ManyToOne(targetEntity=Reservation::class, inversedBy="participants")
      */
-    private $reservation;
+    private $reservations;
+
+
+    /**
+     * @ORM\OneToMany(targetEntity=Reclamation::class, mappedBy="proprietaire")
+     */
+    private $reclamations;
+
+    /**
+     * @ORM\OneToMany(targetEntity=Reservation::class, mappedBy="responsable")
+     */
+    private $reunion;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=Reservation::class, inversedBy="users")
+     */
+    private $reunions;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=Notification::class, mappedBy="users")
+     */
+    private $notifications;
+
+    public function __construct()
+    {
+        $this->reunions = new ArrayCollection();
+        $this->reclamations = new ArrayCollection();
+        $this->reunion = new ArrayCollection();
+        $this->notifications = new ArrayCollection();
+    }
+
 
     public function getId(): ?int
     {
@@ -98,7 +134,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
-
         return $this;
     }
 
@@ -113,6 +148,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): self
     {
         $this->password = $password;
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPlainPassword()
+    {
+        return $this->plainPassword;
+    }
+
+    /**
+     * @param mixed $plainPassword
+     */
+    public function setPlainPassword(string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
 
         return $this;
     }
@@ -134,7 +186,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function eraseCredentials()
     {
         // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        $this->plainPassword = null;
     }
 
     public function getDepartment(): ?Department
@@ -149,14 +201,100 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getReservation(): ?Reservation
+    public function getReservations(): ?Reservation
     {
-        return $this->reservation;
+        return $this->reservations;
     }
 
-    public function setReservation(?Reservation $reservation): self
+    public function setReservations(?Reservation $reservations): self
     {
-        $this->reservation = $reservation;
+        $this->reservations = $reservations;
+
+        return $this;
+    }
+    public function __toString()
+    {
+        return $this->email;
+    }
+
+
+    /**
+     * @return Collection<int, Reclamation>
+     */
+    public function getReclamations(): Collection
+    {
+        return $this->reclamations;
+    }
+
+    public function addReclamation(Reclamation $reclamation): self
+    {
+        if (!$this->reclamations->contains($reclamation)) {
+            $this->reclamations[] = $reclamation;
+            $reclamation->setProprietaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReclamation(Reclamation $reclamation): self
+    {
+        if ($this->reclamations->removeElement($reclamation)) {
+            // set the owning side to null (unless already changed)
+            if ($reclamation->getProprietaire() === $this) {
+                $reclamation->setProprietaire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Reservation>
+     */
+    public function getReunions(): Collection
+    {
+        return $this->reunions;
+    }
+
+    public function addReunion(Reservation $reunion): self
+    {
+        if (!$this->reunions->contains($reunion)) {
+            $this->reunions[] = $reunion;
+        }
+
+        return $this;
+    }
+
+    public function removeReunion(Reservation $reunion): self
+    {
+        $this->reunions->removeElement($reunion);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Notification>
+     */
+    public function getNotifications(): Collection
+    {
+        return $this->notifications;
+    }
+
+    public function addNotification(Notification $notification): self
+    {
+        if (!$this->notifications->contains($notification)) {
+            $this->notifications[] = $notification;
+            $notification->addUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNotification(Notification $notification): self
+    {
+        if ($this->notifications->removeElement($notification)) {
+            $notification->removeUser($this);
+        }
 
         return $this;
     }

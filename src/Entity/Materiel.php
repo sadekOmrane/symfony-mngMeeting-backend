@@ -3,10 +3,12 @@
 namespace App\Entity;
 
 use App\Repository\MaterielRepository;
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=MaterielRepository::class)
+ * @ApiResource()
  */
 class Materiel
 {
@@ -54,5 +56,9 @@ class Materiel
         $this->salle = $salle;
 
         return $this;
+    }
+    public function __toString()
+    {
+        return $this->libelle;
     }
 }

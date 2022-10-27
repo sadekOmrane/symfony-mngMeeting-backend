@@ -26,6 +26,16 @@ class ReservationController extends AbstractController
     }
 
     /**
+     * @Route("/myreservs", name="app_myreservs_index", methods={"GET"})
+     */
+    public function myreservs(ReservationRepository $reservationRepository): Response
+    {
+        return $this->render('reservation/index.html.twig', [
+            'reservations' => $reservationRepository->findAll(),
+        ]);
+    }
+
+    /**
      * @Route("/new", name="app_reservation_new", methods={"GET", "POST"})
      */
     public function new(Request $request, ReservationRepository $reservationRepository): Response
@@ -81,7 +91,7 @@ class ReservationController extends AbstractController
      */
     public function delete(Request $request, Reservation $reservation, ReservationRepository $reservationRepository): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$reservation->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $reservation->getId(), $request->request->get('_token'))) {
             $reservationRepository->remove($reservation, true);
         }
 

@@ -5,10 +5,12 @@ namespace App\Entity;
 use App\Repository\DepartmentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=DepartmentRepository::class)
+ * @ApiResource()
  */
 class Department
 {
@@ -79,5 +81,9 @@ class Department
         }
 
         return $this;
+    }
+    public function __toString()
+    {
+        return $this->libelle;
     }
 }

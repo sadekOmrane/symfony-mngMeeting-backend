@@ -5,10 +5,12 @@ namespace App\Entity;
 use App\Repository\ReservationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=ReservationRepository::class)
+ * @ApiResource()
  */
 class Reservation
 {
@@ -29,24 +31,26 @@ class Reservation
      */
     private $dateFin;
 
-    /**
-     * @ORM\OneToMany(targetEntity=User::class, mappedBy="reservation")
-     */
-    private $participants;
 
     /**
-     * @ORM\OneToOne(targetEntity=User::class, cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="reunion")
      */
     private $responsable;
 
     /**
-     * @ORM\OneToOne(targetEntity=Salle::class, inversedBy="reservation", cascade={"persist", "remove"})
+     * @ORM\ManyToOne(targetEntity=Salle::class, inversedBy="reservations")
      */
     private $salle;
+
+    /**
+     * @ORM\ManyToMany(targetEntity=User::class, mappedBy="reunions")
+     */
+    private $users;
 
     public function __construct()
     {
         $this->participants = new ArrayCollection();
+        $this->users = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -78,35 +82,14 @@ class Reservation
         return $this;
     }
 
-    /**
-     * @return Collection<int, User>
-     */
-    public function getParticipants(): Collection
+
+    public function __toString()
     {
-        return $this->participants;
+        return (string) $this->id;
     }
 
-    public function addParticipant(User $participant): self
-    {
-        if (!$this->participants->contains($participant)) {
-            $this->participants[] = $participant;
-            $participant->setReservation($this);
-        }
 
-        return $this;
-    }
 
-    public function removeParticipant(User $participant): self
-    {
-        if ($this->participants->removeElement($participant)) {
-            // set the owning side to null (unless already changed)
-            if ($participant->getReservation() === $this) {
-                $participant->setReservation(null);
-            }
-        }
-
-        return $this;
-    }
 
     public function getResponsable(): ?User
     {
@@ -128,6 +111,33 @@ class Reservation
     public function setSalle(?Salle $salle): self
     {
         $this->salle = $salle;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUsers(): Collection
+    {
+        return $this->users;
+    }
+
+    public function addUser(User $user): self
+    {
+        if (!$this->users->contains($user)) {
+            $this->users[] = $user;
+            $user->addReunion($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): self
+    {
+        if ($this->users->removeElement($user)) {
+            $user->removeReunion($this);
+        }
 
         return $this;
     }
