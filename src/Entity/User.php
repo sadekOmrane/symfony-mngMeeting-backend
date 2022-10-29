@@ -49,10 +49,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     private $department;
 
-    /**
-     * @ORM\ManyToOne(targetEntity=Reservation::class, inversedBy="participants")
-     */
-    private $reservations;
 
 
     /**
@@ -75,12 +71,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     private $notifications;
 
+    /**
+     * @ORM\OneToMany(targetEntity=ReadedNotification::class, mappedBy="user")
+     */
+    private $readedNotifications;
+
     public function __construct()
     {
         $this->reunions = new ArrayCollection();
         $this->reclamations = new ArrayCollection();
         $this->reunion = new ArrayCollection();
         $this->notifications = new ArrayCollection();
+        $this->readedNotifications = new ArrayCollection();
     }
 
 
@@ -201,17 +203,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getReservations(): ?Reservation
-    {
-        return $this->reservations;
-    }
-
-    public function setReservations(?Reservation $reservations): self
-    {
-        $this->reservations = $reservations;
-
-        return $this;
-    }
     public function __toString()
     {
         return $this->email;
@@ -294,6 +285,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->notifications->removeElement($notification)) {
             $notification->removeUser($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ReadedNotification>
+     */
+    public function getReadedNotifications(): Collection
+    {
+        return $this->readedNotifications;
+    }
+
+    public function addReadedNotification(ReadedNotification $readedNotification): self
+    {
+        if (!$this->readedNotifications->contains($readedNotification)) {
+            $this->readedNotifications[] = $readedNotification;
+            $readedNotification->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReadedNotification(ReadedNotification $readedNotification): self
+    {
+        if ($this->readedNotifications->removeElement($readedNotification)) {
+            // set the owning side to null (unless already changed)
+            if ($readedNotification->getUser() === $this) {
+                $readedNotification->setUser(null);
+            }
         }
 
         return $this;

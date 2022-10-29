@@ -37,13 +37,14 @@ class Notification
     private $users;
 
     /**
-     * @ORM\Column(type="boolean", nullable=true)
+     * @ORM\OneToMany(targetEntity=ReadedNotification::class, mappedBy="notification")
      */
-    private $state;
+    private $readedNotifications;
 
     public function __construct()
     {
         $this->users = new ArrayCollection();
+        $this->readedNotifications = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -99,14 +100,33 @@ class Notification
         return $this;
     }
 
-    public function isState(): ?bool
+
+    /**
+     * @return Collection<int, ReadedNotification>
+     */
+    public function getReadedNotifications(): Collection
     {
-        return $this->state;
+        return $this->readedNotifications;
     }
 
-    public function setState(?bool $state): self
+    public function addReadedNotification(ReadedNotification $readedNotification): self
     {
-        $this->state = $state;
+        if (!$this->readedNotifications->contains($readedNotification)) {
+            $this->readedNotifications[] = $readedNotification;
+            $readedNotification->setNotification($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReadedNotification(ReadedNotification $readedNotification): self
+    {
+        if ($this->readedNotifications->removeElement($readedNotification)) {
+            // set the owning side to null (unless already changed)
+            if ($readedNotification->getNotification() === $this) {
+                $readedNotification->setNotification(null);
+            }
+        }
 
         return $this;
     }
