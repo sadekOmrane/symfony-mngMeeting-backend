@@ -41,6 +41,16 @@ class Notification
      */
     private $readedNotifications;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Reservation::class, inversedBy="notifications")
+     */
+    private $reunion;
+
+
+
+
+
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
@@ -127,6 +137,18 @@ class Notification
                 $readedNotification->setNotification(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getReunion(): ?Reservation
+    {
+        return $this->reunion;
+    }
+
+    public function setReunion(?Reservation $reunion): self
+    {
+        $this->reunion = $reunion;
 
         return $this;
     }
